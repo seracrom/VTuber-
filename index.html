@@ -132,6 +132,18 @@
 
   .cta-row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:18px }
 
+  /* ===== 見積もりモーダル ===== */
+  .modal-overlay{ position:fixed; inset:0; background:rgba(43,36,64,.55);
+    display:none; align-items:flex-start; justify-content:center; padding:24px 14px;
+    z-index:50; overflow-y:auto; -webkit-overflow-scrolling:touch }
+  .modal-overlay.open{ display:flex }
+  .modal-box{ background:#fff; border-radius:18px; max-width:520px; width:100%;
+    box-shadow:0 20px 60px rgba(40,20,80,.35); padding:20px; margin:auto }
+  .modal-top{ display:flex; align-items:center; justify-content:space-between }
+  .modal-x{ border:none; background:#f3edff; color:var(--accent); width:34px; height:34px;
+    border-radius:50%; font-size:15px; cursor:pointer; font-weight:700; flex:none }
+  .modal-x:hover{ background:#e9dfff }
+
   /* ===== 結果 ===== */
   .result-head{ text-align:center; padding:6px 0 2px }
   .result-head .eyebrow{ color:var(--accent); font-size:13px; font-weight:700; letter-spacing:.05em }
@@ -505,7 +517,28 @@ function buildEstimate(s, ctx){
     tip = "予算を抑えたいなら、まずイラストのみ(Vtuberお試しセット ¥150,000〜)から始めて、後でLive2D化することもできます。";
   }
 
-  return { plan, base, planNote, items, totalMin, tip };
+  // ---- 活動に便利な素材の料金目安(本体とは別・任意/ Crom Works 料金表ベース) ----
+  // ※ 価格は「便利な素材」セクションと同じ条件で出し分け
+  const stream = ["live","mixed"].includes(s.purpose) || ["youtube","twitch","pc_other","undecided"].includes(s.platform);
+  const assets = [];
+  assets.push({ name:"SNSアイコン・ヘッダー", range:"¥10,000〜15,000" });
+  assets.push({ name:"ロゴ・ワンポイントマーク", range:"¥12,000〜" });
+  if(stream){
+    assets.push({ name:"配信画面(開始/待機/終了)", range:"要相談" });
+    assets.push({ name:"配信枠フレーム・オーバーレイ", range:"要相談" });
+  }
+  if(["video","still","mixed"].includes(s.purpose)){
+    assets.push({ name:"サムネイル用イラスト", range:"¥7,000〜" });
+  }
+  if(s.platform === "twitch" || s.purpose === "mixed"){
+    assets.push({ name:"エモート / スタンプ", range:"要相談" });
+  }
+  if(s.budget === "rich" || s.purpose === "still"){
+    assets.push({ name:"グッズ用イラスト(一枚絵)", range:"¥30,000〜" });
+  }
+  assets.push({ name:"リアクション用 表情差分", range:"¥1,000〜" });
+
+  return { plan, base, planNote, items, totalMin, tip, assets };
 }
 
 function buildResult(s){
@@ -676,17 +709,6 @@ function renderResult(){
         <p>${r.summary}</p>
       </div>
 
-      <div class="plan-box">
-        <span class="plan-label">あなたにおすすめのプラン</span>
-        <div class="plan-name">${e.plan}</div>
-        <div class="plan-price">${yen(e.base)}<small>〜（税込）</small></div>
-        <p class="plan-note">${e.planNote}</p>
-        ${estItems}
-        <div class="est-total">概算の目安<strong>${yen(e.totalMin)}〜</strong></div>
-        ${e.tip ? `<p class="plan-tip">💡 ${e.tip}</p>` : ""}
-        <p class="est-disc">※ デザインの複雑さ・作業量で変動します。正式な金額はフォームからお気軽にどうぞ(相談無料・1〜3営業日で返信)。</p>
-      </div>
-
       <ul class="trust">
         <li>現役VTuber兼Live2Dモデラー監修のクオリティ</li>
         <li>イラストからLive2Dまで、窓口ひとつで一括依頼OK</li>
@@ -695,7 +717,7 @@ function renderResult(){
       </ul>
 
       <div class="cta-row">
-        ${formCta}
+        <button class="btn primary big" id="estBtn">💰 この内容で見積もりを出す(無料)</button>
         <a class="btn outline" href="${HP_URL}" target="_blank" rel="noopener">Crom Works公式サイトを見る</a>
       </div>
     </div>
@@ -734,6 +756,38 @@ function renderResult(){
           <p class="q-help" style="margin-top:10px">コピーした内容を、依頼フォームの「ご要望」欄などに貼り付けてください。</p>
         </div>
       </div>
+    </div>
+
+    <!-- 見積もりモーダル(ボタンを押すと表示) -->
+    <div class="modal-overlay" id="estModal">
+      <div class="modal-box">
+        <div class="modal-top">
+          <span class="plan-label">お見積もり(目安)</span>
+          <button class="modal-x" id="estClose" aria-label="閉じる">✕</button>
+        </div>
+
+        <div class="plan-box" style="margin-top:12px">
+          <span class="plan-label">あなたにおすすめのプラン</span>
+          <div class="plan-name">${e.plan}</div>
+          <div class="plan-price">${yen(e.base)}<small>〜（税込）</small></div>
+          <p class="plan-note">${e.planNote}</p>
+          ${estItems}
+          <div class="est-total">モデル本体の概算<strong>${yen(e.totalMin)}〜</strong></div>
+          ${e.tip ? `<p class="plan-tip">💡 ${e.tip}</p>` : ""}
+        </div>
+
+        <p class="est-sub">活動に便利な素材の料金目安(本体とは別・必要に応じて)</p>
+        <table class="est-table"><tbody>
+          ${e.assets.map(a=>`<tr><td>${a.name}</td><td class="est-price">${a.range}</td></tr>`).join("")}
+        </tbody></table>
+
+        <p class="est-disc">※ 金額はすべて「〜(から)」「税込」の目安です。デザインの複雑さ・作業量で変動します。正式な金額はヒアリング後のお見積もりでご案内します(相談無料・1〜3営業日で返信)。</p>
+
+        <div class="cta-row">
+          ${formCta}
+          <button class="btn" id="estCloseBtn">閉じる</button>
+        </div>
+      </div>
     </div>`;
 
   document.getElementById("copyBtn").addEventListener("click", async ()=>{
@@ -752,8 +806,18 @@ function renderResult(){
     });
   });
 
+  // 見積もりモーダルの開閉
+  const estModal = document.getElementById("estModal");
+  const openEst  = ()=>{ estModal.classList.add("open");  document.body.style.overflow="hidden"; };
+  const closeEst = ()=>{ estModal.classList.remove("open"); document.body.style.overflow=""; };
+  document.getElementById("estBtn").addEventListener("click", openEst);
+  document.getElementById("estClose").addEventListener("click", closeEst);
+  document.getElementById("estCloseBtn").addEventListener("click", closeEst);
+  estModal.addEventListener("click", ev=>{ if(ev.target === estModal) closeEst(); });
+
   document.getElementById("restartBtn").addEventListener("click", ()=>{
     state={}; history=[]; cache={};
+    document.body.style.overflow="";
     document.getElementById("progressArea").classList.remove("hidden");
     window.scrollTo({top:0, behavior:"smooth"});
     render();
