@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VTuberモデル制作 かんたん診断チェックシート</title>
-<meta name="description" content="VTuberのLive2Dモデル制作を依頼したい初心者向け。質問に答えるだけで、必要なイラスト・差分・Live2Dの度合いと、そのまま使える依頼文がわかります。">
+<title>VTuberモデル かんたん診断 | Crom Works</title>
+<meta name="description" content="VTuberのLive2Dモデル制作を依頼したい初心者向けの無料診断。質問に答えるだけで、必要な素材・おすすめプラン・概算の目安がわかり、そのままCrom Worksに相談できます。">
 <style>
   /* ============================================================
      カラーや見た目はここ(:root)の変数を変えるだけで調整できます
@@ -102,6 +102,35 @@
   .btn.form{ border:none; color:#fff;
     background:linear-gradient(90deg,var(--accent2),#fb7185); }
   .btn.form:hover{ filter:brightness(1.04); background:linear-gradient(90deg,var(--accent2),#fb7185) }
+  .btn.big{ padding:14px 22px; font-size:15px }
+  .btn.outline{ background:#fff; border:2px solid var(--accent); color:var(--accent) }
+  .btn.outline:hover{ background:#f3edff }
+
+  /* ===== おすすめプラン・見積もり ===== */
+  .plan-box{ margin-top:18px; border:2px solid #efe7ff; border-radius:16px;
+    background:linear-gradient(180deg,#faf7ff,#fdf0f7); padding:18px 16px; text-align:center }
+  .plan-label{ display:inline-block; font-size:12px; font-weight:700; color:var(--accent);
+    background:#fff; border:1px solid var(--line); border-radius:999px; padding:3px 12px }
+  .plan-name{ font-size:20px; font-weight:800; margin-top:10px }
+  .plan-price{ font-size:30px; font-weight:800; color:var(--accent2); line-height:1.2; margin:2px 0 6px }
+  .plan-price small{ font-size:13px; color:var(--sub); font-weight:600 }
+  .plan-note{ font-size:13px; color:var(--sub); margin:0 auto 4px; max-width:460px }
+  .est-sub{ font-size:12.5px; font-weight:700; color:var(--ink); margin:14px 0 6px }
+  .est-table{ width:100%; border-collapse:collapse; font-size:13px }
+  .est-table td{ padding:7px 6px; border-top:1px solid var(--line); text-align:left }
+  .est-table td.est-price{ text-align:right; white-space:nowrap; color:var(--accent); font-weight:700 }
+  .est-note{ display:block; font-size:11px; color:var(--sub); font-weight:400 }
+  .est-total{ margin-top:12px; font-size:15px; font-weight:700 }
+  .est-total strong{ font-size:21px; color:var(--accent2); margin-left:8px }
+  .plan-tip{ font-size:12.5px; color:var(--ink); background:#fff7ed; border:1px solid #fde6c8;
+    border-radius:10px; padding:8px 12px; margin:12px 0 0; text-align:left; line-height:1.7 }
+  .est-disc{ font-size:11.5px; color:var(--sub); margin:12px 0 0; line-height:1.7 }
+
+  .trust{ list-style:none; margin:18px 0 0; padding:0; display:flex; flex-direction:column; gap:8px }
+  .trust li{ position:relative; padding-left:26px; font-size:13.5px; font-weight:600 }
+  .trust li::before{ content:"✓"; position:absolute; left:4px; top:0; color:var(--ok); font-weight:800 }
+
+  .cta-row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:18px }
 
   /* ===== 結果 ===== */
   .result-head{ text-align:center; padding:6px 0 2px }
@@ -148,9 +177,9 @@
 <div class="wrap">
 
   <header class="app">
-    <span class="badge">VTuberモデル制作</span>
-    <h1>かんたん診断チェックシート</h1>
-    <p>質問に答えるだけで「必要なイラスト・差分・Live2Dの度合い」と、そのまま使える依頼文がわかります。</p>
+    <span class="badge">Crom Works 公式診断</span>
+    <h1>VTuberモデル かんたん診断</h1>
+    <p>質問に答えるだけで、必要な素材・あなたに合うプラン・<b>概算の目安</b>がわかります。<br>そのまま <a class="js-hp-link" href="#" target="_blank" rel="noopener">Crom Works</a> にご相談いただけます。</p>
   </header>
 
   <!-- 進捗 -->
@@ -163,7 +192,8 @@
   <div id="app"></div>
 
   <footer class="app">
-    <p>※ あくまで目安の診断です。料金・著作権・修正回数・納期などの最終条件は必ず制作者にご確認ください。</p>
+    <p>※ 表示金額・診断はあくまで目安です。最終的な料金・納期・著作権などは <a class="js-hp-link" href="#" target="_blank" rel="noopener">Crom Works公式サイト</a> およびお見積もりでご確認ください。</p>
+    <p>Presented by Crom Works</p>
   </footer>
 
 </div>
@@ -179,8 +209,10 @@
 /* ============================================================================
  *  ★ 設定:ここだけ書き換えればOK ★
  * ==========================================================================*/
-const FORM_URL   = "";            // ← Googleフォームなど依頼フォームのURLを貼る(空なら「準備中」表示)
-const GROUP_NAME = "(グループ名)"; // ← あなたのグループ名に書き換える
+const FORM_URL   = "https://docs.google.com/forms/d/e/1FAIpQLSe4CBPsDoQNooSHVahxJppxIzhcEP6h-qPbjZb1r-seF2WuQw/viewform"; // 依頼フォーム(空なら「準備中」表示)
+const HP_URL     = "https://seracrom.github.io/Crom-works/"; // Crom Works 公式サイト
+const GROUP_NAME = "Crom Works"; // グループ名
+const yen = n => "¥" + Number(n).toLocaleString("ja-JP"); // 金額表示用ヘルパー
 /* ==========================================================================*/
 
 /* ---- 表示用ラベル(値 → 日本語) ----------------------------------------- */
@@ -406,6 +438,76 @@ function goBack(){
 /* ============================================================================
  *  結果のロジック
  * ==========================================================================*/
+/* ----------------------------------------------------------------------------
+ *  簡易見積もり:診断内容を Crom Works の料金表にあてはめて概算を出す
+ *  ※ 料金を変えたいときは、この関数内の数字(base / price)を書き換えてください
+ * --------------------------------------------------------------------------*/
+function buildEstimate(s, ctx){
+  const { degree, needL2d, appAuto, diffs } = ctx;
+  const hasLayered = s.art_status === "layered"; // パーツ分けPSDを既に持っている
+  let plan, base, planNote;
+
+  if(!needL2d){
+    // 動かさない → イラストのみ
+    if(appAuto){
+      plan = "Live2D用イラスト(パーツ分け)";
+      base = 130000;
+      planNote = "IRIAM等はイラスト主体。三面図や表情差分まで揃える『Vtuberお試しセット(¥150,000〜)』もおすすめです。";
+    }else{
+      plan = "Vtuberお試しセット";
+      base = 150000;
+      planNote = "全身立ち絵(パーツ分け)＋三面図＋キービジュアル(表情差分3種)のイラスト一式。Live2Dは含みません。";
+    }
+  }else if(hasLayered){
+    // イラスト支給あり → Live2Dモデリングのみ
+    if(degree >= 3){
+      plan = "Live2Dモデリング＋";
+      base = 220000;
+      planNote = "豊富な表情(パーフェクトシンク)・表情差分4種・体の位置XYまで対応。お持ちのパーツ分けPSDを使用します。";
+    }else{
+      plan = "基本Live2Dモデリング";
+      base = 160000;
+      planNote = "基本表情・動作・物理演算。お持ちのパーツ分けPSDを使用。VTubeStudio／Nizimaの設定は無料です。";
+    }
+  }else{
+    // イラストもLive2Dも必要 → セットプラン
+    if(degree >= 3 || s.budget === "rich"){
+      plan = "フルセット";
+      base = 345000;
+      planNote = "全身立ち絵＋衣装差分4種＋基本Live2Dモデリング＋三面図＋キービジュアル＋一枚絵(背景あり)。一番人気の充実プラン。";
+    }else{
+      plan = "基本セット";
+      base = 275000;
+      planNote = "全身立ち絵＋衣装差分4種＋基本Live2Dモデリング。イラストからLive2Dまで一括のスタンダード。";
+    }
+  }
+
+  // 追加で考えられるオプション(目安)
+  const items = [];
+  if(needL2d && degree >= 3 && s.range === "full"){
+    items.push({ name:"全身アニメーション(歩き等)", price:20000, note:"" });
+  }
+  if(needL2d && diffs.includes("hand")){
+    items.push({ name:"一部アニメーション(手を振る等)", price:10000, note:"" });
+  }
+  if(hasLayered && diffs.includes("face") && degree < 3){
+    items.push({ name:"表情差分の追加", price:5000, note:"1差分あたり" });
+  }
+  if(hasLayered && diffs.includes("costume")){
+    items.push({ name:"衣装差分(別途イラスト)", price:80000, note:"1差分あたり・要相談" });
+  }
+
+  const totalMin = base + items.reduce((a,b)=>a + b.price, 0);
+
+  // 予算控えめだがイラスト＋Live2Dが必要な人への一言
+  let tip = "";
+  if(!hasLayered && needL2d && s.budget === "light"){
+    tip = "予算を抑えたいなら、まずイラストのみ(Vtuberお試しセット ¥150,000〜)から始めて、後でLive2D化することもできます。";
+  }
+
+  return { plan, base, planNote, items, totalMin, tip };
+}
+
 function buildResult(s){
   const appAuto = ["iriam","mobile"].includes(s.platform);
   const m = s.motion;
@@ -518,7 +620,10 @@ function buildResult(s){
   }
   notes.push("依頼時は <b>商用利用の可否・著作権/二次利用の範囲・修正回数・納期・料金</b> を必ず確認しましょう。");
 
-  // ---- 依頼文テンプレート(${GROUP_NAME} 宛て / Googleフォーム貼り付け用) ----
+  // ---- 簡易見積もり(Crom Works 料金表ベース) ----
+  const estimate = buildEstimate(s, { degree, needL2d, appAuto, diffs });
+
+  // ---- 依頼文テンプレート(Googleフォーム貼り付け用) ----
   const L = LABELS;
   const diffText = diffs.length ? diffs.map(d=>L.diff[d]).join("、") : "おまかせ";
   const req =
@@ -533,6 +638,8 @@ function buildResult(s){
 ■ 映したい範囲   : ${L.range[s.range]}
 ■ ほしい差分     : ${diffText}
 ■ 予算・進め方   : ${L.budget[s.budget]}
+■ 希望プラン(目安) : ${estimate.plan}(${yen(estimate.base)}〜)
+■ 概算の目安     : ${yen(estimate.totalMin)}〜(税込・あくまで目安)
 
 ■ 補足・ご要望(自由にご記入ください)
 
@@ -540,7 +647,7 @@ function buildResult(s){
 ────────────
 ※この依頼内容は診断チェックシートで作成しました。`;
 
-  return { eyebrow, title, summary, materials, activityAssets, requestInfo, notes, requestText:req };
+  return { eyebrow, title, summary, materials, activityAssets, requestInfo, notes, estimate, requestText:req };
 }
 
 function renderResult(){
@@ -548,6 +655,18 @@ function renderResult(){
   document.getElementById("progressArea").classList.add("hidden");
 
   const li = (arr, cls="") => `<ul class="list ${cls}">${arr.map(x=>`<li>${x}</li>`).join("")}</ul>`;
+
+  const e = r.estimate;
+  const estItems = e.items.length
+    ? `<p class="est-sub">追加で考えられるオプション(目安)</p>
+       <table class="est-table"><tbody>${e.items.map(it=>`<tr><td>${it.name}${it.note?`<span class="est-note">${it.note}</span>`:""}</td><td class="est-price">+${yen(it.price)}〜</td></tr>`).join("")}</tbody></table>`
+    : "";
+  const formCta = FORM_URL
+    ? `<a class="btn primary big" href="${FORM_URL}" target="_blank" rel="noopener">この内容でCrom Worksに相談する ↗</a>`
+    : `<button class="btn primary big" id="formBtnTop">この内容でCrom Worksに相談する ↗</button>`;
+  const formBtnReq = FORM_URL
+    ? `<a class="btn form" href="${FORM_URL}" target="_blank" rel="noopener">依頼フォームを開く ↗</a>`
+    : `<button class="btn form" id="formBtn">依頼フォームを開く ↗</button>`;
 
   $app.innerHTML = `
     <div class="card">
@@ -557,21 +676,43 @@ function renderResult(){
         <p>${r.summary}</p>
       </div>
 
-      <div class="section">
+      <div class="plan-box">
+        <span class="plan-label">あなたにおすすめのプラン</span>
+        <div class="plan-name">${e.plan}</div>
+        <div class="plan-price">${yen(e.base)}<small>〜（税込）</small></div>
+        <p class="plan-note">${e.planNote}</p>
+        ${estItems}
+        <div class="est-total">概算の目安<strong>${yen(e.totalMin)}〜</strong></div>
+        ${e.tip ? `<p class="plan-tip">💡 ${e.tip}</p>` : ""}
+        <p class="est-disc">※ デザインの複雑さ・作業量で変動します。正式な金額はフォームからお気軽にどうぞ(相談無料・1〜3営業日で返信)。</p>
+      </div>
+
+      <ul class="trust">
+        <li>現役VTuber兼Live2Dモデラー監修のクオリティ</li>
+        <li>イラストからLive2Dまで、窓口ひとつで一括依頼OK</li>
+        <li>VTubeStudio・Nizima の設定・セットアップは無料</li>
+        <li>初めてでも安心。まだイメージだけのご相談でも大丈夫です</li>
+      </ul>
+
+      <div class="cta-row">
+        ${formCta}
+        <a class="btn outline" href="${HP_URL}" target="_blank" rel="noopener">Crom Works公式サイトを見る</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section" style="margin-top:0">
         <h3><span class="ic">🧩</span>必要な素材</h3>
         ${li(r.materials)}
       </div>
-
       <div class="section">
         <h3><span class="ic">✨</span>活動するうえで便利なイラスト・素材</h3>
         ${li(r.activityAssets)}
       </div>
-
       <div class="section">
         <h3><span class="ic">📝</span>依頼するときにあると便利な情報</h3>
         ${li(r.requestInfo)}
       </div>
-
       <div class="section">
         <h3><span class="ic">⚠️</span>気をつけたいこと</h3>
         ${li(r.notes, "warn")}
@@ -581,14 +722,12 @@ function renderResult(){
     <div class="card">
       <div class="section" style="margin-top:0">
         <h3><span class="ic">📋</span>そのまま使える依頼文</h3>
-        <p class="q-help">下の内容をコピーして「依頼フォームを開く」またはCrom Worksホームぺージにあるご依頼フォームから貼り付けてください。補足・ご要望の追記もおすすめです。</p>
+        <p class="q-help">下の内容をコピーして「依頼フォームを開く」または<a class="js-hp-link" href="${HP_URL}" target="_blank" rel="noopener">Crom Works公式サイト</a>のご依頼フォームから貼り付けてください。補足・ご要望の追記もおすすめです。</p>
         <div class="req-box">
           <textarea id="reqText" spellcheck="false">${r.requestText.replace(/</g,"&lt;")}</textarea>
           <div class="copy-row">
             <button class="btn primary" id="copyBtn">依頼内容をコピー</button>
-            ${FORM_URL
-              ? `<a class="btn form" href="${FORM_URL}" target="_blank" rel="noopener">依頼フォームを開く ↗</a>`
-              : `<button class="btn form" id="formBtn">依頼フォームを開く ↗</button>`}
+            ${formBtnReq}
             <button class="btn" id="restartBtn">もう一度診断する</button>
             <span class="copied" id="copied">コピーしました！</span>
           </div>
@@ -605,9 +744,12 @@ function renderResult(){
     c.classList.add("show"); setTimeout(()=>c.classList.remove("show"), 1600);
   });
 
-  const formBtn = document.getElementById("formBtn"); // FORM_URL未設定のときだけ存在
-  if(formBtn) formBtn.addEventListener("click", ()=>{
-    alert("依頼フォームのリンクはまだ設定されていません。\nindex.html 先頭の FORM_URL にURLを貼ると、このボタンからフォームへ移動できます。");
+  // FORM_URL未設定のときだけ存在するフォールバック用ボタン
+  ["formBtn","formBtnTop"].forEach(id=>{
+    const b = document.getElementById(id);
+    if(b) b.addEventListener("click", ()=>{
+      alert("依頼フォームのリンクが設定されていません。\nindex.html 先頭の FORM_URL にURLを貼ってください。");
+    });
   });
 
   document.getElementById("restartBtn").addEventListener("click", ()=>{
@@ -621,6 +763,8 @@ function renderResult(){
 }
 
 /* ---- 起動 ---- */
+// ヘッダー・フッターの「Crom Works」リンクに HP_URL を反映(結果画面のリンクはJS描画時に設定済み)
+document.querySelectorAll(".js-hp-link").forEach(a=>{ if(HP_URL) a.href = HP_URL; });
 render();
 </script>
 </body>
