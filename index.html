@@ -110,35 +110,36 @@
     content:""; position:absolute; left:0; right:0;
     top:100%; height:244%;             /* 未選択:枠の真下に待機(液面が下にある状態) */
     z-index:0; pointer-events:none;
-    transition:top 2.8s cubic-bezier(.33,.66,.3,1);   /* ← ゆっくりせり上がって満ちる=注がれる動き */
+    transition:top 2.8s cubic-bezier(.33,.66,.3,1);   /* ← ゆっくりせり上がって、上部で止まる */
   }
-  .opt::before{                        /* 奥の層:濃いワイン・波大きめ */
+  .opt::before{                        /* 奥の層:濃いワイン・波は低め＆幅広 */
     opacity:.22;
     background:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='48' viewBox='0 0 200 48' preserveAspectRatio='none'%3E%3Cpath d='M0 24 q50 -24 100 0 t100 0 V48 H0 Z' fill='%235C1A2E'/%3E%3C/svg%3E") left top/200px 48px repeat-x,
-      linear-gradient(var(--wine),var(--wine)) left bottom/100% calc(100% - 40px) no-repeat;
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='28' viewBox='0 0 280 28' preserveAspectRatio='none'%3E%3Cpath d='M0 14 q70 -14 140 0 t140 0 V28 H0 Z' fill='%235C1A2E'/%3E%3C/svg%3E") left top/280px 28px repeat-x,
+      linear-gradient(var(--wine),var(--wine)) left bottom/100% calc(100% - 22px) no-repeat;
   }
-  .opt::after{                         /* 手前の層:明るいワイン・波ちがいで立体感 */
+  .opt::after{                         /* 手前の層:明るいワイン・波の幅ちがいで立体感 */
     opacity:.24; z-index:1;
     background:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='40' viewBox='0 0 160 40' preserveAspectRatio='none'%3E%3Cpath d='M0 20 q40 -20 80 0 t80 0 V40 H0 Z' fill='%238B2840'/%3E%3C/svg%3E") left top/160px 40px repeat-x,
-      linear-gradient(var(--wine-mid),var(--wine-mid)) left bottom/100% calc(100% - 34px) no-repeat;
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='230' height='24' viewBox='0 0 230 24' preserveAspectRatio='none'%3E%3Cpath d='M0 12 q57.5 -12 115 0 t115 0 V24 H0 Z' fill='%238B2840'/%3E%3C/svg%3E") left top/230px 24px repeat-x,
+      linear-gradient(var(--wine-mid),var(--wine-mid)) left bottom/100% calc(100% - 18px) no-repeat;
   }
-  /* せり上がり(top)＋横へ流れる(opt-flow)＋上下にうねる(opt-bob)を同時にかけて液体らしく */
-  .opt.selected::before{ top:-140%; animation:opt-flow-a 3.4s linear infinite, opt-bob-a 4.2s ease-in-out infinite }
-  .opt.selected::after { top:-138%; transition-delay:.18s; animation:opt-flow-b 2.6s linear infinite, opt-bob-b 3.4s ease-in-out -1.2s infinite }
+  /* 選択:液面が枠の上部で止まり、波は流れ続ける。
+     2層とも同じ向き(左へ流れる)で、速度だけ変えている(奥7s / 手前4.6s)。 */
+  .opt.selected::before{ top:-8%; animation:opt-flow-a 7s linear infinite, opt-bob-a 4.6s ease-in-out infinite }
+  .opt.selected::after { top:-5%; transition-delay:.18s; animation:opt-flow-b 4.6s linear infinite, opt-bob-b 3.6s ease-in-out -1s infinite }
 
   @keyframes opt-flow-a{
     from{ background-position:0 top, left bottom }
-    to  { background-position:-200px top, left bottom }
+    to  { background-position:-280px top, left bottom }   /* 1波長ぶん左へ＝シームレス */
   }
   @keyframes opt-flow-b{
     from{ background-position:0 top, left bottom }
-    to  { background-position:160px top, left bottom }
+    to  { background-position:-230px top, left bottom }   /* 同じ左向き・別波長 */
   }
-  /* うねり:全体をわずかに上下させて液面がゆれて見せる(下方向のみ＝下端に隙間を作らない) */
-  @keyframes opt-bob-a{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(8px) } }
-  @keyframes opt-bob-b{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(6px) } }
+  /* うねり:全体をわずかに上下させて液面がゆれて見せる(下方向のみ=下端に隙間を作らない) */
+  @keyframes opt-bob-a{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(5px) } }
+  @keyframes opt-bob-b{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(4px) } }
   @media (prefers-reduced-motion: reduce){
     .opt::before,.opt::after{ transition-duration:.4s }
     .opt.selected::before,.opt.selected::after{ animation:none }
@@ -641,14 +642,15 @@ function buildEstimate(s, ctx){
     }
   }else{
     // イラストもLive2Dも必要 → セットプラン
-    if(degree >= 3 || s.budget === "rich"){
+    // ※ お試し予算(light)の人にはフルセットを勧めず、基本セットまでに留める
+    if(s.budget !== "light" && (degree >= 3 || s.budget === "rich")){
       plan = "フルセット";
-      base = 345000;
-      planNote = "全身立ち絵＋衣装差分4種＋基本Live2Dモデリング＋三面図＋キービジュアル＋一枚絵(背景あり)。一番人気の充実プラン。";
+      base = 355000;
+      planNote = "全身立ち絵＋表情差分4種＋基本Live2Dモデリング＋三面図＋キービジュアル＋一枚絵(背景あり)。一番人気の充実プラン。";
     }else{
       plan = "基本セット";
-      base = 275000;
-      planNote = "全身立ち絵＋衣装差分4種＋基本Live2Dモデリング。イラストからLive2Dまで一括のスタンダード。";
+      base = 270000;
+      planNote = "全身立ち絵＋表情差分4種＋基本Live2Dモデリング。イラストからLive2Dまで一括のスタンダード。";
     }
   }
 
@@ -751,7 +753,7 @@ function buildResult(s){
     materials.push("<b>PSD形式(.psd)</b> で、パーツごとに<b>レイヤー分け</b>されたイラスト");
     materials.push("動かすパーツは<b>隠れている部分まで描く</b>(閉じた時のまぶた裏・口の中・前髪の下の輪郭 など)");
     materials.push("レイヤー名・グループ名を分かりやすく(髪/目/口/眉/顔/体/服…)");
-    materials.push("推奨解像度:配信用なら長辺<b>4000px前後</b>(大きい分には後で縮小できます)");
+    materials.push("推奨解像度:立ち絵・モデルは<b>長辺8000px</b>(大きい分には後で縮小できます)");
     if(degree >= 2){
       materials.push("揺らしたいパーツ(髪・服のすそ・アクセサリー等)は<b>独立したレイヤー</b>に");
     }
