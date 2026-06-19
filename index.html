@@ -88,22 +88,113 @@
     width:100%; text-align:left; cursor:pointer;
     background:transparent; border:1px solid rgba(92,26,46,.16); border-radius:2px;
     padding:13px 16px; font:inherit; color:inherit;
-    transition:border-color .18s, background .18s;
+    transition:border-color .18s;
+    position:relative; overflow:hidden; isolation:isolate;
   }
   .opt:hover{ border-color:var(--wine-light); background:rgba(92,26,46,.03) }
   .opt:active{ background:rgba(92,26,46,.06) }
-  .opt.selected{ border-color:var(--wine); background:var(--wine-blush) }
+  .opt.selected{ border-color:var(--wine) }
+  .opt .mark, .opt > span:last-child{ position:relative; z-index:2 }
+
+  /* ===== ワインが注がれるような波形の液体アニメーション =====
+     2層の液体(奥=::before / 手前=::after)が下からせり上がって枠を満たします。
+     液面は SVG のなめらかな波(円の並びではないので、とがりません)。
+     満ちきると波は枠の上へ抜け、最終的に一色になります(色が変わる最中だけ波が出る)。
+     ▼調整ポイント:
+       ・波の大きさ … SVG の height / viewBox / q の数値(振幅)、background-size の高さpx
+       ・波の数(横幅)… background-size の横px(大きいほど波がゆったり=少なく)
+       ・注がれる速さ … .selected::before/after の transition 秒数 と top の値
+       ・流れる速さ … opt-flow の秒数 / 色の濃さ … opacity
+     ※ 波の色は SVG 内に直書き(--wine=%235C1A2E, --wine-mid=%238B2840)。色を変える時はここも合わせて。*/
+  .opt::before, .opt::after{
+    content:""; position:absolute; left:0; right:0;
+    top:100%; height:244%;             /* 未選択:枠の真下に待機(液面が下にある状態) */
+    z-index:0; pointer-events:none;
+    transition:top 2.8s cubic-bezier(.33,.66,.3,1);   /* ← ゆっくりせり上がって満ちる=注がれる動き */
+  }
+  .opt::before{                        /* 奥の層:濃いワイン・波大きめ */
+    opacity:.22;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='48' viewBox='0 0 200 48' preserveAspectRatio='none'%3E%3Cpath d='M0 24 q50 -24 100 0 t100 0 V48 H0 Z' fill='%235C1A2E'/%3E%3C/svg%3E") left top/200px 48px repeat-x,
+      linear-gradient(var(--wine),var(--wine)) left bottom/100% calc(100% - 40px) no-repeat;
+  }
+  .opt::after{                         /* 手前の層:明るいワイン・波ちがいで立体感 */
+    opacity:.24; z-index:1;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='40' viewBox='0 0 160 40' preserveAspectRatio='none'%3E%3Cpath d='M0 20 q40 -20 80 0 t80 0 V40 H0 Z' fill='%238B2840'/%3E%3C/svg%3E") left top/160px 40px repeat-x,
+      linear-gradient(var(--wine-mid),var(--wine-mid)) left bottom/100% calc(100% - 34px) no-repeat;
+  }
+  /* せり上がり(top)＋横へ流れる(opt-flow)＋上下にうねる(opt-bob)を同時にかけて液体らしく */
+  .opt.selected::before{ top:-140%; animation:opt-flow-a 3.4s linear infinite, opt-bob-a 4.2s ease-in-out infinite }
+  .opt.selected::after { top:-138%; transition-delay:.18s; animation:opt-flow-b 2.6s linear infinite, opt-bob-b 3.4s ease-in-out -1.2s infinite }
+
+  @keyframes opt-flow-a{
+    from{ background-position:0 top, left bottom }
+    to  { background-position:-200px top, left bottom }
+  }
+  @keyframes opt-flow-b{
+    from{ background-position:0 top, left bottom }
+    to  { background-position:160px top, left bottom }
+  }
+  /* うねり:全体をわずかに上下させて液面がゆれて見せる(下方向のみ＝下端に隙間を作らない) */
+  @keyframes opt-bob-a{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(8px) } }
+  @keyframes opt-bob-b{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(6px) } }
+  @media (prefers-reduced-motion: reduce){
+    .opt::before,.opt::after{ transition-duration:.4s }
+    .opt.selected::before,.opt.selected::after{ animation:none }
+  }
+
   .opt .mark{
     flex:none; width:18px; height:18px; border-radius:50%;
-    border:1px solid rgba(92,26,46,.4); margin-top:2px; transition:.15s;
+    border:1px solid rgba(92,26,46,.4); margin-top:2px; position:relative;
+    overflow:hidden; transition:border-color .18s;
   }
   .opt.multi .mark{ border-radius:2px }
-  .opt.selected .mark{ border-color:var(--wine); background:var(--wine) }
-  .opt.selected .mark::after{
-    content:""; position:absolute; inset:0; margin:auto;
-    width:6px; height:6px; border-radius:50%; background:var(--cream);
+  .opt.selected .mark{ border-color:var(--wine) }
+
+  /* マーク内も同じ仕組み(満ちる本体＋流れる波) */
+  .opt .mark::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:var(--wine);
+    opacity:0;
+    transform:scaleY(0);
+    transform-origin:bottom;
+    transition:transform .45s cubic-bezier(.4,1.3,.4,1), opacity .2s;
   }
-  .opt.multi.selected .mark::after{ border-radius:1px }
+  .opt .mark::after{
+    content:"";
+    position:absolute;
+    left:50%; top:50%;
+    width:115%; height:115%;
+    border-radius:50% 50% 45% 55% / 55% 45% 55% 45%;
+    background:var(--wine-light);
+    opacity:0;
+    transform:translate(-50%,-50%) rotate(0deg);
+    transition:opacity .25s .25s;
+  }
+  .opt.selected .mark::before{
+    opacity:1;
+    transform:scaleY(1);
+  }
+  .opt.selected .mark::after{
+    opacity:.45;
+    animation:mark-wave 3s linear .25s infinite;
+  }
+  @keyframes mark-wave{
+    from{ transform:translate(-50%,-50%) rotate(0deg); }
+    to{ transform:translate(-50%,-50%) rotate(360deg); }
+  }
+  .opt .mark-dot{
+    position:absolute; inset:0; margin:auto; z-index:2;
+    width:6px; height:6px; border-radius:50%; background:var(--cream);
+    opacity:0; transform:scale(.3);
+    transition:opacity .2s .3s, transform .25s .3s;
+  }
+  .opt.multi .mark-dot{ border-radius:1px }
+  .opt.selected .mark-dot{ opacity:1; transform:scale(1) }
+
   .opt .label{ font-weight:500; font-size:13.5px }
   .opt .desc{ display:block; font-weight:400; color:var(--sub); font-size:12px; margin-top:3px; line-height:1.65 }
 
@@ -438,7 +529,7 @@ function drawQuestion(q){
   const optsHtml = q.options.map(o=>{
     const on = isMulti ? selected.includes(o.value) : selected === o.value;
     return `<button class="opt ${isMulti?'multi':''} ${on?'selected':''}" data-v="${o.value}">
-        <span class="mark"></span>
+        <span class="mark"><i class="mark-dot"></i></span>
         <span><span class="label">${o.label}</span>
         ${o.desc?`<span class="desc">${o.desc}</span>`:""}</span>
       </button>`;
@@ -455,12 +546,15 @@ function drawQuestion(q){
       </div>
     </div>`;
 
-  // 選択肢クリック(クリックしただけでは進まず、選択状態の表示だけ更新する)
-  $app.querySelectorAll(".opt").forEach(btn=>{
+  // 選択肢クリック(クリックしただけでは進まない)
+  // ※ 再描画はせず、既存要素の .selected クラスだけ付け外しする。
+  //   これで「未選択→選択」の状態変化が起き、液体が注がれるトランジションが発火する。
+  const opts = $app.querySelectorAll(".opt");
+  opts.forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const v = btn.dataset.v;
       if(isMulti){
-        let arr = selected;
+        let arr = Array.isArray(cache[q.id]) ? cache[q.id].slice() : [];
         if(v === "none"){
           arr = arr.includes("none") ? [] : ["none"];          // 「おまかせ」は単独
         }else{
@@ -468,10 +562,16 @@ function drawQuestion(q){
           arr = arr.includes(v) ? arr.filter(x=>x!==v) : [...arr, v];
         }
         cache[q.id] = arr;
+        opts.forEach(o=> o.classList.toggle("selected", arr.includes(o.dataset.v)) );
       }else{
         cache[q.id] = v;
+        opts.forEach(o=> o.classList.toggle("selected", o.dataset.v === v) );
       }
-      drawQuestion(q); // 再描画して選択状態を反映(次の質問へは進まない)
+      // 「次へ」ボタンの活性を更新
+      const cur = cache[q.id];
+      const ok = isMulti ? (Array.isArray(cur) && cur.length > 0) : (cur !== undefined && cur !== null);
+      const nb = document.getElementById("nextBtn");
+      if(nb) nb.disabled = !ok;
     });
   });
 
