@@ -110,7 +110,7 @@
     content:""; position:absolute; left:0; right:0;
     top:100%; height:244%;             /* 未選択:枠の真下に待機(液面が下にある状態) */
     z-index:0; pointer-events:none;
-    transition:top 2.33s cubic-bezier(.33,.66,.3,1);   /* ← せり上がって上部で止まる(注ぎ速度。波の速さとは別) */
+    transition:top 1.66s cubic-bezier(.33,.66,.3,1);   /* ← せり上がって上部で止まる(注ぎ速度。波の速さとは別) */
   }
   .opt::before{                        /* 奥の層:濃いワイン・波は低め＆幅広 */
     opacity:.22;
@@ -127,7 +127,7 @@
   /* 選択:液面が枠の上部で止まり、波は流れ続ける。
      2層とも同じ向き(左へ流れる)で、速度だけ変えている(奥7s / 手前4.6s)。 */
   .opt.selected::before{ top:-8%; animation:opt-flow-a 7s linear infinite, opt-bob-a 4.6s ease-in-out infinite }
-  .opt.selected::after { top:-5%; transition-delay:.15s; animation:opt-flow-b 4.6s linear infinite, opt-bob-b 3.6s ease-in-out -1s infinite }
+  .opt.selected::after { top:-5%; transition-delay:.11s; animation:opt-flow-b 4.6s linear infinite, opt-bob-b 3.6s ease-in-out -1s infinite }
 
   @keyframes opt-flow-a{
     from{ background-position:0 top, left bottom }
